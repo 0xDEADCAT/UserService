@@ -6,7 +6,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql("Host=localhost;Port=5432;Database=userdb;Username=postgres;Password=postgres"));
+builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql("Host=postgres;Port=5432;Database=userdb;Username=postgres;Password=postgres"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
@@ -18,13 +18,12 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 
-
 app.MapGet("/users", async (UserDb db) =>
     await db.Users.Select(x => new UserDTO(x)).ToListAsync())
 .WithName("GetUsers");
 
-app.MapGet("/users/{id}", async (int id, UserDb db) =>
-    await db.Users.FindAsync(id)
+app.MapGet("/users/{userName}", async (string userName, UserDb db) =>
+    await db.Users.SingleOrDefaultAsync(x => x.Name == userName)
         is User user
             ? Results.Ok(new UserDTO(user))
             : Results.NotFound())
@@ -40,13 +39,13 @@ app.MapPost("/users", async (PostUserDTO userDTO, UserDb db) =>
     db.Users.Add(user);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/users/{user.Id}", new UserDTO(user));
+    return Results.Created($"/users/{userDTO.Name}", new UserDTO(user));
 })
 .WithName("CreateUser");
 
-app.MapDelete("/users/{id}", async (int id, UserDb db) =>
+app.MapDelete("/users/{userName}", async (string userName, UserDb db) =>
 {
-    if (await db.Users.FindAsync(id) is User user)
+    if (await db.Users.SingleOrDefaultAsync(x => x.Name == userName) is User user)
     {
         db.Users.Remove(user);
         await db.SaveChangesAsync();
@@ -57,16 +56,28 @@ app.MapDelete("/users/{id}", async (int id, UserDb db) =>
 })
 .WithName("DeleteUser");
 
+// Perform migrations at runtime
+using (var scope = app.Services.CreateScope()) {
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<UserDb>();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
+}
+
 app.Run();
 
 public class User {
     public int Id { get; set; }
-    public string? Name { get; set; }
+
+    public string Name { get; set; }
 }
 
 public class UserDTO {
     public int Id { get; set; }
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public UserDTO() { }
     public UserDTO(User user) =>
@@ -74,7 +85,7 @@ public class UserDTO {
 }
 
 public class PostUserDTO {
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public PostUserDTO() { }
     public PostUserDTO(User user) =>
@@ -88,8 +99,8 @@ public class UserDb : DbContext
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<User>()
-        .HasKey(c => new { c.Id, c.Name });
-}
+    {
+        modelBuilder.Entity<User>()
+            .HasAlternateKey(x => x.Name);
+    }
 }
