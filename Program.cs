@@ -1,6 +1,25 @@
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("http://proxy")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+
+            builder.WithOrigins("http://localhost")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,6 +36,8 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     options.RoutePrefix = string.Empty;
 });
+
+app.UseCors();
 
 app.MapGet("/users", async (UserDb db) =>
     await db.Users.Select(x => new UserDTO(x)).ToListAsync())
