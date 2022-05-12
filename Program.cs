@@ -8,9 +8,15 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.AllowAnyOrigin()
+            builder.WithOrigins("http://proxy")
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .AllowCredentials();
+
+            builder.WithOrigins("http://localhost")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
         });
 });
 
@@ -30,6 +36,8 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     options.RoutePrefix = string.Empty;
 });
+
+app.UseCors();
 
 app.MapGet("/users", async (UserDb db) =>
     await db.Users.Select(x => new UserDTO(x)).ToListAsync())
@@ -79,8 +87,6 @@ using (var scope = app.Services.CreateScope()) {
         context.Database.Migrate();
     }
 }
-
-app.UseCors();
 
 app.Run();
 
