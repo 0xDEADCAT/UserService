@@ -31,8 +31,6 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 
-app.UseCors();
-
 app.MapGet("/users", async (UserDb db) =>
     await db.Users.Select(x => new UserDTO(x)).ToListAsync())
 .WithName("GetUsers");
@@ -81,6 +79,8 @@ using (var scope = app.Services.CreateScope()) {
         context.Database.Migrate();
     }
 }
+
+app.UseCors();
 
 app.Run();
 
