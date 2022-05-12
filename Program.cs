@@ -2,17 +2,17 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// // CORS policy
-// builder.Services.AddCors(options =>
-// {
-//     options.AddDefaultPolicy(
-//         builder =>
-//         {
-//             builder.AllowAnyOrigin()
-//                 .AllowAnyHeader()
-//                 .AllowAnyMethod();
-//         });
-// });
+// CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -31,7 +31,7 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 
-// app.UseCors();
+app.UseCors();
 
 app.MapGet("/users", async (UserDb db) =>
     await db.Users.Select(x => new UserDTO(x)).ToListAsync())
