@@ -10,13 +10,13 @@ builder.Services.AddCors(options =>
         {
             builder.WithOrigins("http://proxy")
                 .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-
+                .AllowAnyMethod();
+            builder.WithOrigins("http://frontend")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
             builder.WithOrigins("http://localhost")
                 .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+                .AllowAnyMethod();
         });
 });
 
