@@ -8,16 +8,10 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.WithOrigins("http://proxy")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-            builder.WithOrigins("http://frontend")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-            builder.WithOrigins("http://localhost")
+            builder.SetIsOriginAllowed(_ => true)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .WithHeaders("Content-Type");
+                .AllowCredentials();
         });
 });
 
@@ -34,7 +28,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    options.SwaggerEndpoint("/user/swagger/v1/swagger.json", "v1");
     options.RoutePrefix = string.Empty;
 });
 
