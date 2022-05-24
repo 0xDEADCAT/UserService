@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,12 @@ builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql("Host=postgres;Port=5
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
