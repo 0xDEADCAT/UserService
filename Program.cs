@@ -7,9 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
-        builder =>
+        policy =>
         {
-            builder.SetIsOriginAllowed(_ => true)
+            policy.WithOrigins("http://frontend.test")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
