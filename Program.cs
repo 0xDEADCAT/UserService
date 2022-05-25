@@ -62,7 +62,7 @@ app.MapPost("/users", async (PostUserDTO userDTO, UserDb db) =>
     db.Users.Add(user);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/users/{userDTO.Name}", new UserDTO(user));
+    Results.Created($"/users/{userDTO.Name}", new UserDTO(user));
 })
 .WithName("CreateUser");
 
