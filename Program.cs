@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var jwtManager = new JwtAuthenticationManager("secret key");
 
+
+builder.Services.AddSingleton<IJwtAuthenticationManager>(jwtManager);
+
+
 // CORS policy
 builder.Services.AddCors(options =>
 {
