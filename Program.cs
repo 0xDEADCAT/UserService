@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtManager = new JwtAuthenticationManager("secret key");
 
 // CORS policy
 builder.Services.AddCors(options =>
@@ -39,6 +42,7 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 
+app.UseAuthentication();
 app.UseCors();
 
 app.MapGet("/users", async (UserDb db) =>
@@ -79,6 +83,23 @@ app.MapDelete("/users/{userName}", async (string userName, UserDb db) =>
 })
 .WithName("DeleteUser");
 
+
+app.MapPost("/authenticate", async (PostUserDTO userDTO, UserDb db) =>
+{
+        var user = new User
+    {
+        Name = userDTO.Name
+    };
+
+    var token = jwtManager.Authenticate(userDTO.Name, db);
+    if (token == null)
+    {
+        return Results.Unauthorized();
+    }
+    return Results.Ok(new UserToken(user, token));
+});
+
+
 // Perform migrations at runtime
 using (var scope = app.Services.CreateScope()) {
     var services = scope.ServiceProvider;
@@ -96,6 +117,21 @@ public class User {
     public int Id { get; set; }
 
     public string Name { get; set; }
+}
+
+
+public class UserToken{
+    public int Id { get; set; }
+
+    public string Name { get; set; }
+
+    public string token { get; set; }
+
+    public UserToken() {}
+
+    public UserToken(User user, string token) =>
+        (Id, Name, token) = (user.Id, user.Name, this.token);
+
 }
 
 public class UserDTO {
@@ -120,6 +156,7 @@ public class UserDb : DbContext
     public UserDb(DbContextOptions<UserDb> options)
         : base(options) { }
     public DbSet<User> Users => Set<User>();
+    public DbSet<UserToken> UserTokens => Set<UserToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
