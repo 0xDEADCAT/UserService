@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var key = "secret key";
+var key = "secretkeyyessosecretpoopoo420";
 
 builder.Services.AddSingleton<IJwtAuthenticationManager>(new JwtAuthenticationManager(key));
-IJwtAuthenticationManager jwtManager = new JwtAuthenticationManager("secret key");
+IJwtAuthenticationManager jwtManager = new JwtAuthenticationManager(key);
 
 
 
@@ -108,11 +108,14 @@ app.MapPost("/authenticate", async (PostUserDTO userDTO, UserDb db) =>
         Name = userDTO.Name
     };
 
+
     var token = jwtManager.Authenticate(userDTO.Name, db);
     if (token == null)
     {
         return Results.Unauthorized();
     }
+    
+
     return Results.Ok(new UserToken(user, token));
 });
 
@@ -142,12 +145,12 @@ public class UserToken{
 
     public string Name { get; set; }
 
-    public string token { get; set; }
+    public string Token { get; set; }
 
     public UserToken() {}
 
     public UserToken(User user, string token) =>
-        (Id, Name, token) = (user.Id, user.Name, this.token);
+        (Id, Name, Token) = (user.Id, user.Name, token);
 
 }
 
