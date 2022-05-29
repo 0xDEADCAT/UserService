@@ -1,12 +1,19 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
+
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtManager = new JwtAuthenticationManager("secret key");
+var key = "secret key";
 
-builder.Services.AddSingleton<IJwtAuthenticationManager>(jwtManager);
+builder.Services.AddSingleton<IJwtAuthenticationManager>(new JwtAuthenticationManager(key));
+IJwtAuthenticationManager jwtManager = new JwtAuthenticationManager("secret key");
+
+
 
 // CORS policy
 builder.Services.AddCors(options =>
@@ -29,6 +36,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql("Host=postgres;Port=5432;Database=userdb;Username=postgres;Password=postgres"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+// authentication
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+});
+
 var app = builder.Build();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -45,6 +58,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseAuthentication();
+
+
 app.UseCors();
 
 app.MapGet("/users", async (UserDb db) =>
