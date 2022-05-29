@@ -115,8 +115,14 @@ app.MapPost("/authenticate", async (PostUserDTO userDTO, UserDb db) =>
         return Results.Unauthorized();
     }
     
+    db.UserTokens.Add(new UserToken
+    {
+        Name = userDTO.Name,
+        token = token
+    });
+    await db.SaveChangesAsync();
 
-    return Results.Ok(new UserToken(user, token));
+    return Results.Created($"/authenticate/{userDTO.Name}", new UserToken(user, token));
 });
 
 
@@ -145,12 +151,12 @@ public class UserToken{
 
     public string Name { get; set; }
 
-    public string Token { get; set; }
+    public string token { get; set; }
 
     public UserToken() {}
 
     public UserToken(User user, string token) =>
-        (Id, Name, Token) = (user.Id, user.Name, token);
+        (Id, Name, token) = (user.Id, user.Name, token);
 
 }
 
