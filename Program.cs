@@ -2,16 +2,20 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
-
-
-
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var key = "secretkeyyessosecretpoopoo420";
+            Random random = new Random();
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            
+            var randomChars = Enumerable.Repeat(chars, 32)
+                .Select(s => s[random.Next(s.Length)]).ToArray();
+            
+            string key = new string(randomChars);
 
 builder.Services.AddSingleton<IJwtAuthenticationManager>(new JwtAuthenticationManager(key));
-IJwtAuthenticationManager jwtManager = new JwtAuthenticationManager(key);
+
 
 
 
@@ -108,6 +112,14 @@ app.MapPost("/authenticate", async (PostUserDTO userDTO, UserDb db) =>
         Name = userDTO.Name
     };
 
+            Random random = new Random();
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            
+            var randomChars = Enumerable.Repeat(chars, 32)
+                .Select(s => s[random.Next(s.Length)]).ToArray();
+            
+            string key = new string(randomChars);
+            IJwtAuthenticationManager jwtManager = new JwtAuthenticationManager(key);
 
     var token = jwtManager.Authenticate(userDTO.Name, db);
     if (token == null)
@@ -124,6 +136,7 @@ app.MapPost("/authenticate", async (PostUserDTO userDTO, UserDb db) =>
 
     return Results.Created($"/authenticate/{userDTO.Name}", new UserToken(user, token));
 });
+
 
 
 // Perform migrations at runtime
