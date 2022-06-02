@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication;
-using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IJwtAuthenticationManager>(new JwtAuthenticationManager(key));
 
-
-
+builder.Configuration.AddEnvironmentVariables(prefix: "HPDS_");
 
 // CORS policy
 builder.Services.AddCors(options =>
@@ -25,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://frontend.test")
+            policy.WithOrigins(builder.Configuration["HPDS_COMMON_FRONTEND_URL"])
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -37,7 +34,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database
-builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql("Host=postgres;Port=5432;Database=userdb;Username=postgres;Password=postgres"));
+builder.Services.AddDbContext<UserDb>(opt => opt.UseNpgsql(builder.Configuration["HPDS_DB_CONN_STRING"]));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // authentication
